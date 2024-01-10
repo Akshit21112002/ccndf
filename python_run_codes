@@ -1,0 +1,3 @@
+﻿python scripts_pose_tracking/train.py --config '/home/cvlabiitj/LocNDF/config/config_mapping.yaml'
+
+python scripts_pose_tracking/mesh_it.py --checkpoint '/home/cvlabiitj/LocNDF/src/best-v12.ckpt'
