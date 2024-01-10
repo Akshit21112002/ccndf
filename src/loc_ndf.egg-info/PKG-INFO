@@ -1,0 +1,5 @@
+Metadata-Version: 2.1
+Name: loc-ndf
+Version: 0.0.1
+Summary: LocNDF: Neural Distance Field Mapping for Robot Localization
+License-File: LICENSE
