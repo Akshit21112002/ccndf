@@ -14,6 +14,8 @@ pip install .
 
 Optionally one can use `pip install -e .` for the editable mode if you plan to change the src code.
 
+make an exp folder to hold experiments
+
 ## Usage
 
 The following commands are expected to be executed in this root directory.
