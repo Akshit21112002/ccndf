@@ -1,6 +1,6 @@
-# LocNDF
+# slam
 
-LocNDF: Neural Distance Field Mapping for Robot Localization
+slam ndf
 
 ## Installation
 
