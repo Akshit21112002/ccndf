@@ -1,6 +1,6 @@
-# slam
+# CCNDF: Curvature Constrained Neural Distance Fields from 3D LiDAR Sequences
 
-slam ndf
+CCNDF: Curvature Constrained Neural Distance Fields from 3D LiDAR Sequences
 
 ## Installation
 
@@ -37,7 +37,7 @@ For the training of multiple key-poses you can use the `config/config_mapping.ya
 
 Tracking the car pose in the trained submaps can be done using `python3 scripts/pose_tracking.py experiments/PATH-TO-THE-CHECKPOINTS/best-v*.ckpt -vis`.
 
-Pretrained models can be downloaded [here](https://www.ipb.uni-bonn.de/html/projects/locndf/experiments.zip) and should be placed under `/experiments`. Those models can be used as explained above.
+
 
 ### Training on your own data
 
@@ -53,7 +53,7 @@ For training a model you can configure `scripts_mcl/config.yaml` and run `script
 
 After training a model, one can run the MCL example, e.g. (`scripts_mcl/run_mcl.py -c PATH-TO-YOUR_CKPT -i data/indoor_scan_poses_2d/seqX -cal data/indoor_scan_poses_2d/base2laser.txt -o out_poses.txt`) with the trained model.
 
-The Pretrained models can be downloaded [here](https://www.ipb.uni-bonn.de/html/projects/locndf/experiments.zip) and should be placed under `/experiments`.
+
 
 ## Citation
 
