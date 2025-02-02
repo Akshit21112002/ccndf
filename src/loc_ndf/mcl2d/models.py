@@ -3,12 +3,12 @@ from pytorch_lightning.core.module import LightningModule
 from loc_ndf.models import loss, models
 from loc_ndf.utils import utils
 import math
-
+import torch.nn.functional as F
 
 class MCLNet(LightningModule):
     def __init__(self, hparams: dict):
         super().__init__()
-        # name you hyperparameter hparams, then it will be saved automagically.
+        # name you hyperparameter hparams, then it will be saved automatically.
         self.save_hyperparameters(hparams)
 
         self.model = models.get_network(hparams["model"])
@@ -71,17 +71,23 @@ class MCLNet(LightningModule):
     def training_step(self, batch: dict, batch_idx):
         points = self.forward(batch["points"])
 
-        inter_grad, inter_val = self.compute_gradient(batch["inter"])
-        rand_grad, rand_val = self.compute_gradient(batch["random"])
+        inter_grad, inter_val = self.compute_gradient(batch['inter'])
+        inter_radius = self.compute_radius_of_curvature(batch['inter'])
+        # #sprint((inter_radius))
+        rand_grad, _ = self.compute_gradient(batch['random'])
+        # rand_radius = self.compute_radius_of_curvature(batch['random'])
+
         loss, losses = self.loss(
             points_distance=points,
-            points=batch["points"],
+            points=batch['points'],
             inter_val=inter_val,
             inter_grad=inter_grad,
-            inter_pos=batch["inter"],
-            ray_dists=batch["dists"],
+            inter_pos=batch['inter'],
+            ray_dists=batch['dists'],
             rand_grad=rand_grad,
-        )
+            inter_radius=inter_radius
+            # rand_radius=rand_radius
+            )
 
         # update occupancy grid
         inter_local = utils.transform(batch["inter"], self.T_local)
@@ -102,6 +108,25 @@ class MCLNet(LightningModule):
         for k, v in losses.items():
             self.log(f"train/{k}", v)
         return loss
+    
+    def compute_radius_of_curvature(self, position: torch.Tensor):
+        position.requires_grad_(True)
+        x=position[..., 0]
+        gradient, _ = self.compute_gradient(position)
+        gradient= F.normalize(gradient, dim=-1)
+        grad_2 = utils.compute_gradient(gradient, position)
+        
+        sum_result = torch.sum(grad_2, dim=-1, keepdim=True)
+       # print(list(sum_result.size()))
+        output_tensor = sum_result.clone()
+        # output_tensor = sum_result
+        #print(list(output_tensor.size()))
+        output_tensor[:, :, -1] = torch.reciprocal(sum_result[:, :, -1])
+        #print(list(output_tensor.size()))
+        
+        return abs(output_tensor)
+    
+    
 
     def compute_gradient(self, position: torch.Tensor):
         position.requires_grad_(True)
