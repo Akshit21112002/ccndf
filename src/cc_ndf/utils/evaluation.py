@@ -1,5 +1,5 @@
 import torch
-from loc_ndf.utils import vis
+from cc_ndf.utils import vis
 from pytorch_lightning.callbacks import Callback
 
 ################################################################

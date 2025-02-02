@@ -1,11 +1,11 @@
-from loc_ndf.utils import pytimer
+from cc_ndf.utils import pytimer
 from tqdm import tqdm
 import numpy as np
 import torch
-from loc_ndf.utils import utils
-from loc_ndf.models import models
+from cc_ndf.utils import utils
+from cc_ndf.models import models
 from os.path import join
-from loc_ndf.datasets import datasets
+from cc_ndf.datasets import datasets
 import os
 
 

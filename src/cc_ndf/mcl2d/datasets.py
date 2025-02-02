@@ -1,4 +1,4 @@
-from loc_ndf.utils import utils
+from cc_ndf.utils import utils
 import tqdm
 from scipy.spatial.transform import Rotation as R
 from torch.utils.data import Dataset, DataLoader

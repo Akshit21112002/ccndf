@@ -1,7 +1,7 @@
 import torch
 from pytorch_lightning.core.module import LightningModule
-from loc_ndf.models import loss, models
-from loc_ndf.utils import utils
+from cc_ndf.models import loss, models
+from cc_ndf.utils import utils
 import math
 import torch.nn.functional as F
 

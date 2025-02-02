@@ -1,5 +1,5 @@
 from easydict import EasyDict
-from loc_ndf.utils import pytimer
+from cc_ndf.utils import pytimer
 from scipy.spatial.transform import Rotation as R
 import torch
 from torch.utils.data import Dataset, DataLoader
@@ -7,7 +7,7 @@ from pytorch_lightning import LightningDataModule
 import open3d as o3d
 import numpy as np
 from os.path import join
-from loc_ndf.utils import utils
+from cc_ndf.utils import utils
 
 
 class DataModule(LightningDataModule):

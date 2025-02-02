@@ -3,12 +3,12 @@ import torch
 import torch.nn as nn
 import numpy as np
 from pytorch_lightning.core.module import LightningModule
-from loc_ndf.models import loss
-from loc_ndf.utils import vis, utils
+from cc_ndf.models import loss
+from cc_ndf.utils import vis, utils
 import open3d as o3d
 from easydict import EasyDict
 import tqdm
-from loc_ndf.utils import pytimer
+from cc_ndf.utils import pytimer
 import torch.nn.functional as F
 
 
