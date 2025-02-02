@@ -7,7 +7,7 @@ CCNDF: Curvature Constrained Neural Distance Fields from 3D LiDAR Sequences
 For the installation simply clone the repo and pip install it.
 
 ```sh
-git clone git@github.com:PRBonn/LocNDF.git
+git clone https://github.com/Akshit21112002/slam.git
 cd LocNDF
 pip install .
 ```
