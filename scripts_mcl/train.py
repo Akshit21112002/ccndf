@@ -41,9 +41,11 @@ def main(config, weights, checkpoint):
 
     # Add callbacks
     lr_monitor = LearningRateMonitor(logging_interval='step')
+    checkpoint_dir = '/home/cvlab/LocNDF/exp_tm/exp_mcl'
     checkpoint_saver = ModelCheckpoint(monitor='train/loss',
                                        filename='best',
                                        mode='min',
+                                       dirpath=checkpoint_dir,
                                        save_last=True)
 
     tb_logger = pl_loggers.TensorBoardLogger(join(utils.EXPERIMENT_DIR, cfg['experiment']['id']),
@@ -52,7 +54,6 @@ def main(config, weights, checkpoint):
     trainer = Trainer(accelerator='gpu',
                       devices=cfg['train']['n_gpus'],
                       logger=tb_logger,
-                      resume_from_checkpoint=checkpoint,
                       max_epochs=cfg['train']['max_epoch'],
                       callbacks=[lr_monitor, checkpoint_saver])
 
