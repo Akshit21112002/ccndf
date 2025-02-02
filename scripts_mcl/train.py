@@ -5,8 +5,8 @@ from pytorch_lightning import loggers as pl_loggers
 from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
 import yaml
 
-from loc_ndf.mcl2d import models, datasets
-from loc_ndf.utils import utils
+from cc_ndf.mcl2d import models, datasets
+from cc_ndf.utils import utils
 
 
 @click.command()

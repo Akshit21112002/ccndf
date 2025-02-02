@@ -41,7 +41,7 @@ Tracking the car pose in the trained submaps can be done using `python3 scripts/
 
 ### Training on your own data
 
-Most importantly implement your own dataloader. An example can be seen in `src/loc_ndf/datasets/datasets.py`. Second, exchange the dataloader in the training script by you dataloader. Ready to train.
+Most importantly implement your own dataloader. An example can be seen in `src/cc_ndf/datasets/datasets.py`. Second, exchange the dataloader in the training script by you dataloader. Ready to train.
 
 ### 2D - MCL
 

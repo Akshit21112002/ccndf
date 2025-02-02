@@ -7,9 +7,9 @@ from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
 import yaml
 from pytorch_lightning import Callback
 
-import loc_ndf.datasets.datasets as datasets
-import loc_ndf.models.models as models
-from loc_ndf.utils import utils
+import cc_ndf.datasets.datasets as datasets
+import cc_ndf.models.models as models
+from cc_ndf.utils import utils
 
 
 @click.command()

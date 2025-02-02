@@ -1,12 +1,12 @@
 import tqdm
 import glob
 #import natsort
-from loc_ndf.utils import particle_filter
+from cc_ndf.utils import particle_filter
 import click
 import torch
 
 import matplotlib.pyplot as plt
-from loc_ndf.mcl2d import models
+from cc_ndf.mcl2d import models
 import numpy as np
 torch.manual_seed(123)
 

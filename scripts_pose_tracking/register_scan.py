@@ -1,12 +1,12 @@
-from loc_ndf.utils import registration
+cc_ndffrom cc_ndf.utils import registration
 from copy import deepcopy
 import click
 from os.path import join
 import torch
-import loc_ndf.datasets.datasets as datasets
-import loc_ndf.models.models as models
+import cc_ndf.datasets.datasets as datasets
+import cc_ndf.models.models as models
 import numpy as np
-from loc_ndf.utils import vis
+from cc_ndf.utils import vis
 
 
 class Registrator:

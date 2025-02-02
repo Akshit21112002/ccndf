@@ -2,7 +2,7 @@ import click
 from os.path import join
 import torch
 
-import loc_ndf.models.models as models
+import cc_ndf.models.models as models
 
 import open3d as o3d
 

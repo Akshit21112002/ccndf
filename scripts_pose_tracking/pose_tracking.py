@@ -1,7 +1,7 @@
 import click
 import torch
 from os.path import join
-from loc_ndf.utils import registration, vis, utils
+from cc_ndf.utils import registration, vis, utils
 from tqdm import tqdm
 from pathlib import Path
 

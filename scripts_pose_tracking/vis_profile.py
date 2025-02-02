@@ -4,15 +4,15 @@ import matplotlib.pyplot as plt
 import click
 import torch
 
-import loc_ndf.datasets.datasets as datasets
-import loc_ndf.models.models as models
-from loc_ndf.utils import vis
+import cc_ndf.datasets.datasets as datasets
+import cc_ndf.models.models as models
+from cc_ndf.utils import vis
 
 import matplotlib.pyplot as plt
 
 from tqdm import tqdm
 
-from loc_ndf.datasets import datasets
+from cc_ndf.datasets import datasets
 import open3d as o3d
 import matplotlib.cm as cm
 
