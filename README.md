@@ -68,6 +68,8 @@ If you use this library for any academic work, please cite the following paper.
   pages={682--698},
   year={2024}
 }
+
+
 @article{wiesmann2023ral,
 author = {L. Wiesmann and T. Guadagnino and I. Vizzo and N. Zimmerman and Y. Pan and H. Kuang and J. Behley and C. Stachniss},
 title = {{LocNDF: Neural Distance Field Mapping for Robot Localization}},
