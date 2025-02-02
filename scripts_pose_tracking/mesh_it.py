@@ -40,6 +40,10 @@ def main(checkpoint, num_voxels, threshold):
     mesh = model.get_mesh(nv, threshold, mask=model.get_occupancy_mask(
         nv).cpu().numpy())  # ,file=file)
 
+    output_file='/home/cvlab/LocNDF/out_fig/mesh.ply'
+    o3d.io.write_triangle_mesh(output_file, mesh)
+    print(f"Mesh saved to {output_file}")
+
     o3d.visualization.draw_geometries(
         [mesh], mesh_show_back_face=True)
 
