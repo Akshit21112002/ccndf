@@ -1,7 +1,7 @@
 from math import pi
 import torch
 import torch.nn as nn
-
+import numpy as np
 from pytorch_lightning.core.module import LightningModule
 from loc_ndf.models import loss
 from loc_ndf.utils import vis, utils
@@ -9,17 +9,18 @@ import open3d as o3d
 from easydict import EasyDict
 import tqdm
 from loc_ndf.utils import pytimer
+import torch.nn.functional as F
 
 
 ##################################################################
 ################ Lightning Module ################################
 ##################################################################
 class LocNDF(LightningModule):
-    def __init__(self, hparams: dict):
+    def __init__(self, hparams: dict, points=None):
         super().__init__()
        # name you hyperparameter hparams, then it will be saved automagically.
         self.save_hyperparameters(hparams)
-        self.update_map_params()  # self.T_local and self.occupancy_mask
+        self.update_map_params(points)  # self.T_local and self.occupancy_mask
 
         self.model = get_network(hparams['model'])
         self.loss = loss.ProjectedDistanceLoss(**hparams['loss']['params'])
@@ -41,6 +42,7 @@ class LocNDF(LightningModule):
 
     def training_step(self, batch: dict, batch_idx):
         points = self.forward(batch['points'])
+        #print("Points: ",points)
 
         inter_grad, inter_val = self.compute_gradient_dists(batch['inter'])
         inter_radius = self.compute_radius_of_curvature(batch['inter'])
@@ -56,8 +58,8 @@ class LocNDF(LightningModule):
             inter_pos=batch['inter'],
             ray_dists=batch['dists'],
             rand_grad=rand_grad,
-            inter_radius=inter_radius,
-            rand_radius=rand_radius)
+            inter_radius=inter_radius)
+            #rand_radius=rand_radius)
 
         for k, v in losses.items():
             self.log(f'train/{k}', v)
@@ -66,37 +68,25 @@ class LocNDF(LightningModule):
 
     def compute_gradient_dists(self, position: torch.Tensor):
         position.requires_grad_(True)
-        #print(list(position.shape))
         val = self.forward(position)
         grad = utils.compute_gradient(val, position)
         return grad, val
     
     def compute_radius_of_curvature(self, position: torch.Tensor):
         position.requires_grad_(True)
+        x=position[..., 0]
         gradient, _ = self.compute_gradient_dists(position)
-        dx = gradient[..., 0]
-        dy = gradient[..., 1]
-        dz = gradient[..., 2]
-
-        # Compute the second derivative of the position
-        d2x = torch.autograd.grad(dx, dx, grad_outputs=torch.ones_like(dx), create_graph=True)[0]
-        d2y = torch.autograd.grad(dy, dy, grad_outputs=torch.ones_like(dy), create_graph=True)[0]
-        d2z = torch.autograd.grad(dz, dz, grad_outputs=torch.ones_like(dz), create_graph=True)[0]
-
-
-        # Compute the numerator and denominator for the radius of curvature formula
-        numerator = (1 + dx**2 + dy**2 + dz**2)**(3/2)
-        denominator = torch.sqrt(d2x**2 + d2y**2 + d2z**2)
-
-        # Compute the radius of curvature
-        radius_of_curvature = numerator / denominator
-
-
-        # Use the newly added function to compute the radius of curvature
-        #radius_of_curvature = compute_radius_of_curvature(gradient)
-
-        return radius_of_curvature.unsqueeze(-1)
-
+        gradient= F.normalize(gradient, dim=-1)
+        grad_2 = utils.compute_gradient(gradient, position)
+        grad_2= F.normalize(grad_2, dim=-1)
+        #print(list(grad_2.size()))
+        sum_result = torch.sum(grad_2, dim=-1, keepdim=True)
+        #print(list(sum_result.size()))
+        output_tensor = sum_result.clone()
+        output_tensor[:, :, :, -1] = torch.reciprocal(sum_result[:, :, :, -1])
+        #print(list(output_tensor.size()))
+        
+        return abs(output_tensor)
 
 
     def configure_optimizers(self):
@@ -139,6 +129,7 @@ class LocNDF(LightningModule):
                 rows.append(self.forward(row))
         pytimer.tocTic('Evaluated model', verbose=verbose)
         dist = torch.stack(rows).squeeze().cpu().numpy()
+        # print(dist.shape)
         mesh = vis.grid_to_mesh(
             dist, tau=tau,
             ascent=self.hparams['data']['gradient_ascent'],
@@ -185,13 +176,14 @@ class LidarNerf(nn.Module):
             nn.Linear(inter_fdim, 1),
             nn.Sigmoid() if sigmoid else nn.Identity()
         )
-
+        
     def forward(self, x):
         pos = self.pos_encoding(x)
 
         x = self.net1(pos)
         x = torch.cat([x, pos], -1)
         x = self.net2(x)
+        # print("Original")
         return x
 
 
@@ -223,10 +215,59 @@ class Siren(nn.Module):
         x = self.net(pos)
         return x
 
+class TransformerBlock(nn.Module):
+    def __init__(self, in_dim, out_dim, num_heads=3, dropout=0.1):
+        super(TransformerBlock, self).__init__()
+        self.attention = nn.MultiheadAttention(in_dim, num_heads, dropout=dropout)
+        self.layer_norm1 = nn.LayerNorm(in_dim)
+        self.feedforward = nn.Sequential(
+            nn.Linear(in_dim, out_dim),
+            nn.ReLU(),
+            nn.Linear(out_dim, in_dim)
+        )
+        self.layer_norm2 = nn.LayerNorm(in_dim)
+    
+    def forward(self, x):
+        #batch_size, seq_len, features = x.size()
+        #x = x.view(batch_size * seq_len, features).transpose(0, 1).view(features, batch_size, seq_len)
+        att_output, _ = self.attention(x, x, x)
+        x = x + att_output
+        x = self.layer_norm1(x)
+        ff_output = self.feedforward(x)
+        x = x + ff_output
+        x = self.layer_norm2(x)
+        return x
+
+class SirenWithTransformer(nn.Module):
+    def __init__(self, inter_fdim, pos_encoding, sigmoid=True, sin=True, transformer_dim=256, num_transformer_layers=4):
+        super().__init__()
+        self.pos_encoding = PositionalEncoder(**pos_encoding['params'])
+        in_dim = self.pos_encoding.featureSize()
+        # print(in_dim)
+        
+        # Replacing MLP with Transformer layers
+        transformer_layers = [
+            TransformerBlock(in_dim, inter_fdim) for _ in range(num_transformer_layers)
+        ]
+        self.transformer = nn.Sequential(*transformer_layers)
+        
+        self.net = nn.Sequential(
+            nn.Linear(in_dim, 1),
+            nn.Sigmoid() if sigmoid else nn.Identity()
+        )
+
+    def forward(self, x):
+        pos = self.pos_encoding(x)
+        # print(f"in of Transformer: {pos.shape}")
+        pos = self.transformer(pos)
+        # print(f"Output of Transformer: {pos.shape}")
+        x = self.net(pos)
+        return x
 
 class Networks(EasyDict):
     LidarNerf = LidarNerf
     Siren = Siren
+    SirenWithTransformer = SirenWithTransformer
 
 
 def get_network(type_params: dict) -> nn.Module:
@@ -247,15 +288,34 @@ class SinLayer(nn.Module):
         return torch.sin(x)
 
 
+# class MLP_Block(nn.Module):
+#     def __init__(self, in_dim: int, out_dim: int, sin=False):
+#         super().__init__()
+#         self.net = nn.Sequential(
+#             nn.Linear(in_features=in_dim, out_features=out_dim),
+#             nn.LayerNorm(out_dim),
+#             SinLayer() if sin else nn.LeakyReLU())
+
+#     def forward(self, x):
+#         print(x.shape)
+#         return self.net(x)
+
+
 class MLP_Block(nn.Module):
     def __init__(self, in_dim: int, out_dim: int, sin=False):
         super().__init__()
         self.net = nn.Sequential(
             nn.Linear(in_features=in_dim, out_features=out_dim),
+            nn.ReLU(),  
+            nn.Dropout(0.2),  # Adding a dropout layer for regularization
+            nn.Linear(in_features=out_dim, out_features=out_dim),  # Adding another linear layer
             nn.LayerNorm(out_dim),
-            SinLayer() if sin else nn.LeakyReLU())
+            nn.LeakyReLU() if not sin else SinLayer()
+        )
 
     def forward(self, x):
+        # Print input shape for debugging
+        # print(x.shape)
         return self.net(x)
 
 
@@ -288,3 +348,4 @@ class PositionalEncoder(nn.Module):
     def featureSize(self):
         return self.dimensionality*(self.num_bands*2+1)
 ################################################################
+
