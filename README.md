@@ -57,9 +57,17 @@ After training a model, one can run the MCL example, e.g. (`scripts_mcl/run_mcl.
 
 ## Citation
 
-If you use this library for any academic work, please cite the original paper.
+If you use this library for any academic work, please cite the following paper.
 
 ```bibtex
+
+@inproceedings{singh2024ccndf,
+  title={CCNDF: Curvature Constrained Neural Distance Fields from 3D LiDAR Sequences},
+  author={Singh, Akshit and Bhakuni, Karan and Nagar, Rajendra},
+  booktitle={Proceedings of the Asian Conference on Computer Vision},
+  pages={682--698},
+  year={2024}
+}
 @article{wiesmann2023ral,
 author = {L. Wiesmann and T. Guadagnino and I. Vizzo and N. Zimmerman and Y. Pan and H. Kuang and J. Behley and C. Stachniss},
 title = {{LocNDF: Neural Distance Field Mapping for Robot Localization}},
