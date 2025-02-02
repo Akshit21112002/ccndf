@@ -53,7 +53,7 @@ def main(config, weights, checkpoint):
 
     # Add callbacks
     lr_monitor = LearningRateMonitor(logging_interval='step')
-    checkpoint_dir = '/home/cvlabiitj/LocNDF/exp'
+    checkpoint_dir = '/home/cvlab/LocNDF/exp_tm/exp1'
     checkpoint_saver = ModelCheckpoint(monitor='train/loss',
                                        filename='best',
                                        mode='min',
