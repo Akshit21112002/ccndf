@@ -1,4 +1,4 @@
-cc_ndffrom cc_ndf.utils import registration
+from cc_ndf.utils import registration
 from copy import deepcopy
 import click
 from os.path import join
