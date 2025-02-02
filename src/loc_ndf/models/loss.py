@@ -21,26 +21,68 @@ class ProjectedDistanceLoss(nn.Module):
                 inter_pos: torch.Tensor,
                 inter_grad: torch.Tensor,
                 rand_grad: torch.Tensor,
-                inter_radius=torch.tensor,
-                rand_radius=torch.tensor):
+                inter_radius=torch.tensor
+                #rand_radius=torch.tensor
+                ):
         #print(list(inter_radius.size()))
-        inter_product = (inter_val * inter_radius) * \
-                        (1 - F.cosine_similarity(inter_val, inter_radius, dim=-1)).unsqueeze(-1)
-        #print(list(inter_product.size()))
         if self.plane_dist:
-            d_pos = inter_pos-points.unsqueeze(1)
-            # Dot product
-            dist = torch.einsum(
-                '...n,...n->...', F.normalize(inter_grad.detach(), dim=-1), d_pos.detach()).abs().sqrt()
-            dist = dist.unsqueeze(-1)
+             d_pos = inter_pos-points.unsqueeze(1)
+             # Dot product
+             dist = torch.einsum(
+                 '...n,...n->...', F.normalize(inter_grad.detach(), dim=-1), d_pos.detach()).abs().sqrt()
+             dist = dist.unsqueeze(-1)  #locndf
         else:
-            dist = ray_dists
-        rex=torch.sqrt(abs(inter_radius**2+inter_val**2-inter_product))
-        dist1=inter_radius-rex
+             dist = ray_dists
+        
+        d_pos = torch.norm(inter_pos.detach() - points.unsqueeze(1).detach(), p=2,dim=-1, keepdim=True)
+        
+        if torch.isnan(inter_radius).any():
+            print("Warning: radius is None")
+        
+        inter_product = torch.sum(d_pos.detach() * inter_radius.detach(), dim=-1, keepdim=True)#dot product
+        
+        if torch.isnan(inter_product).any():
+            print("Warning: inter_prod is None")
+        
+       
+
+        #print(list(d_pos.size()))
+        output_tensor = inter_radius.clone()
+        # output_tensor = inter_radius
+        output_tensor[..., -1] = inter_radius[..., -1]**2
+
+        output_tensor1 = d_pos.clone()
+        # output_tensor1 = d_pos
+        output_tensor1[..., -1] = d_pos[..., -1]**2
+
+        output_tensor3 = inter_product.clone()
+        # output_tensor3 = inter_product
+        output_tensor3[..., -1] = inter_product[..., -1]*2
+        rex=torch.sqrt(abs(output_tensor.detach()+output_tensor1.detach()-(2*output_tensor3.detach()))).detach()
+        if torch.isnan(rex).any():
+            print("Warning: rex is None")
+        #print(rex)
+        dist1=inter_radius.detach()-rex.detach()# circle distance
+
+        if torch.isnan(dist1).any():
+            print("Warning: dist1 is None")
+        
+
+        
+        dist2=d_pos #ray_dists
+        
+        if torch.isnan(inter_val).any():
+            print("Warning: val is None")
         weight = (1e-3 + ray_dists.max() - ray_dists)**self.power
         weight = weight * weight.numel() / weight.sum()
-        inter_loss = F.l1_loss(inter_val, dist1, reduction='none')
-        inter_loss = (inter_loss * weight).mean()
+        
+        inter_loss = F.l1_loss((inter_val), dist1, reduction='none')
+
+       
+
+        inter_loss = ((inter_loss * weight).mean()) 
+        # print(inter_loss)
+
 
         loss_distance = points_distance.abs().mean()
 
@@ -49,9 +91,13 @@ class ProjectedDistanceLoss(nn.Module):
                                                        rand_grad[..., 1, :],
                                                        dim=-1)).mean()
 
+        
         loss = inter_loss + loss_gradient*self.alpha + \
-            loss_distance * self.beta + self.gamma * gradient_similarity
-        logs = {"distance": loss_distance, "l1_dist": inter_loss,
-                "gradient": loss_gradient, "gradient_sim": gradient_similarity, "loss": loss}
+            loss_distance * self.beta  + self.gamma * gradient_similarity 
+        
 
+        logs = {"distance": loss_distance, "l1_dist": inter_loss,
+                 "gradient": loss_gradient, "gradient_sim": gradient_similarity, "loss": loss}
+
+        
         return loss, logs
