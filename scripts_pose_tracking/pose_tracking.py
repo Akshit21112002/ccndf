@@ -24,6 +24,7 @@ from pathlib import Path
 @click.option('--visualize', '-vis', is_flag=True, show_default=True, default=False)
 @click.option('--do_test', '-test', is_flag=True, show_default=True, default=False)
 def main(checkpoints, num_voxels, threshold, visualize, do_test):
+    checkpoints = [join(checkpoints, file) for file in os.listdir(checkpoints) if file.endswith('.ckpt')]
 
     if do_test:
         folder = join(utils.DATA_DIR,"apollo/TestData/ColumbiaPark/2018-10-11")
