@@ -8,7 +8,7 @@ For the installation simply clone the repo and pip install it.
 
 ```sh
 git clone https://github.com/Akshit21112002/slam.git
-cd LocNDF
+cd ccndf
 pip install .
 ```
 
