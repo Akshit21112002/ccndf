@@ -1,4 +1,4 @@
-# CCNDF: Curvature Constrained Neural Distance Fields from 3D LiDAR Sequences
+# CCNDF: Curvature Constrained Neural Distance Fields from 3D LiDAR Sequences (ACCV 2024)
 
 CCNDF: Curvature Constrained Neural Distance Fields from 3D LiDAR Sequences
 
