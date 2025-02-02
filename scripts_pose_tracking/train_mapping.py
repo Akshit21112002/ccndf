@@ -1,4 +1,5 @@
 import click
+import os
 from os.path import join
 import subprocess
 from pytorch_lightning import Trainer
@@ -51,11 +52,14 @@ def main(config, weights):
         model.update_map_params(data.get_train_set().points)
 
         # Add callbacks
+        checkpoint_dir = '/home/cvlab/LocNDF/exp_tm'
+        os.makedirs(checkpoint_dir, exist_ok=True)
         lr_monitor = LearningRateMonitor(logging_interval='step')
         checkpoint_saver = ModelCheckpoint(monitor='train/loss',
                                            filename=f'best-v{str(i)}',
+                                           dirpath='/home/cvlab/LocNDF/exp_tm',
                                            mode='min',
-                                           save_last=True)
+                                           save_last=False)
 
         tb_logger = pl_loggers.TensorBoardLogger(join(utils.EXPERIMENT_DIR, cfg['experiment']['id']),
                                                  sub_dir=str(i),
@@ -73,7 +77,7 @@ def main(config, weights):
         trainer.fit(model, data)
 
         # init parameters with last trained model
-        weights = join(tb_logger.log_dir, f'../checkpoints/best-v{i}.ckpt')
+        weights = join(checkpoint_dir, f'/home/cvlab/LocNDF/exp_tm/best-v{i}.ckpt')
         version = tb_logger.version
 
 
